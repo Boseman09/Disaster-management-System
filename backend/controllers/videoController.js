@@ -354,3 +354,25 @@ const videoController = {
                 }
               }
             },
+            }
+        }
+          ]);
+    
+          res.json({
+            success: true,
+            data: stats[0] || {},
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Get video stats error:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to fetch video statistics',
+            message: error.message,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+    };
+    
+    module.exports = videoController;

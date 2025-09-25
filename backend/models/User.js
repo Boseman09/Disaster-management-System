@@ -4,6 +4,9 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, sparse: true },
   phone: { type: String, unique: true, sparse: true },
   name: { type: String, required: true },
+  middleName: { type: String },
+  dateOfBirth: { type: Date },
+  age: { type: Number },
   role: { 
     type: String, 
     enum: ['Public', 'Government', 'Relief_Staff'], 
@@ -13,7 +16,30 @@ const userSchema = new mongoose.Schema({
   isGuest: { type: Boolean, default: false },
   guestId: { type: String, unique: true, sparse: true },
   lastSyncTimestamp: { type: Date, default: Date.now },
-   // ✅ Emergency Contacts
+
+  // ✅ Location Information
+  location: {
+    village_city: { type: String },
+    district: { type: String },
+    state: { type: String },
+    pincode: { type: String }
+  },
+
+  // ✅ Medical Information
+  medicalInfo: {
+    disabilities: {
+      visualImpairment: { type: Boolean, default: false },
+      hearingImpairment: { type: Boolean, default: false },
+      physicalDisability: { type: Boolean, default: false },
+      speechImpairment: { type: Boolean, default: false },
+      cognitiveDisability: { type: Boolean, default: false },
+      multipleDisabilities: { type: Boolean, default: false }
+    },
+    pregnancyNursingStatus: { type: Boolean, default: false },
+    chronicHealthConditions: { type: String }
+  },
+
+  // ✅ Emergency Contacts
   emergencyContacts: {
     primary: {
       name: { type: String },
@@ -42,6 +68,23 @@ const userSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+// Calculate age automatically from date of birth
+userSchema.pre('save', function(next) {
+  if (this.dateOfBirth && (!this.age || this.isModified('dateOfBirth'))) {
+    const today = new Date();
+    const birthDate = new Date(this.dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    this.age = age;
+  }
+  
+  next();
 });
 
 // Set permissions based on role
